@@ -11,17 +11,17 @@ interface ShowInterface {
   id: number;
   name: string;
   summary: string;
-  image: string;
+  image: { medium: string }
 }
 
-interface ShowDataInterface {
-  show: {
-    id: number;
-    name: string;
-    summary: string;
-    image?: { medium: string }
-  };
-}
+// interface ShowDataInterface {
+//   show: {
+//     id: number;
+//     name: string;
+//     summary: string;
+//     image?: { medium: string }
+//   };
+// }
 
 interface EpisodeInterface {
   id: number;
@@ -40,21 +40,20 @@ interface EpisodeInterface {
 
 async function getShowsByTerm(term: string): Promise<ShowInterface[]> {
   const response = await axios.get(`${BASE_URL}search/shows?q=${term}`);
-  const shows = response.data.map(_handleShowData);
+  const shows: ShowInterface[] = response.data.map(_handleShowData);
   return shows;
 
 }
 
 
 /** Parse received data from each show and return {id, name, summary, image} */
-function _handleShowData(eachShow: ShowDataInterface): ShowInterface {
+function _handleShowData(eachShow: { show: ShowInterface }): ShowInterface {
+  const show = eachShow.show;
   return {
-    id: eachShow.show.id,
-    name: eachShow.show.name,
-    summary: eachShow.show.summary,
-    image: eachShow.show.image
-      ? eachShow.show.image.medium
-      : "https://static.tvmaze.com/uploads/images/medium_portrait/147/369403.jpg"
+    id: show.id,
+    name: show.name,
+    summary: show.summary,
+    image: { medium: show.image?.medium || "https://static.tvmaze.com/uploads/images/medium_portrait/147/369403.jpg" }
   }
 }
 
@@ -68,7 +67,7 @@ function populateShows(shows: ShowInterface[]): void {
       `<div data-show-id="${show.id}" class="Show col-md-12 col-lg-6 mb-4">
          <div class="media">
            <img
-              src="${show.image}"
+              src="${show.image.medium}"
               alt="Bletchly Circle San Francisco"
               class="w-25 mr-3">
            <div class="media-body">
@@ -144,7 +143,7 @@ function populateEpisodes(episodes: EpisodeInterface[]): void {
 
 /** Handle click on episodes button: get episodes for show and display */
 
-async function getEpisodesAndDisplay(evt: { target: HTMLElement }): Promise<void> {
+async function getEpisodesAndDisplay(evt: JQuery.ClickEvent): Promise<void> {
 
   const showId = $(evt.target).closest(".Show").data("show-id");
   const episodes = await getEpisodesOfShow(showId);

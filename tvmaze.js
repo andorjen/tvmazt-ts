@@ -13112,13 +13112,13 @@ function getShowsByTerm(term) {
 }
 /** Parse received data from each show and return {id, name, summary, image} */
 function _handleShowData(eachShow) {
+    var _a;
+    var show = eachShow.show;
     return {
-        id: eachShow.show.id,
-        name: eachShow.show.name,
-        summary: eachShow.show.summary,
-        image: eachShow.show.image
-            ? eachShow.show.image.medium
-            : "https://static.tvmaze.com/uploads/images/medium_portrait/147/369403.jpg"
+        id: show.id,
+        name: show.name,
+        summary: show.summary,
+        image: { medium: ((_a = show.image) === null || _a === void 0 ? void 0 : _a.medium) || "https://static.tvmaze.com/uploads/images/medium_portrait/147/369403.jpg" }
     };
 }
 /** Given list of shows, create markup for each and to DOM */
@@ -13126,7 +13126,7 @@ function populateShows(shows) {
     $showsList.empty();
     for (var _i = 0, shows_1 = shows; _i < shows_1.length; _i++) {
         var show = shows_1[_i];
-        var $show = $("<div data-show-id=\"" + show.id + "\" class=\"Show col-md-12 col-lg-6 mb-4\">\n         <div class=\"media\">\n           <img\n              src=\"" + show.image + "\"\n              alt=\"Bletchly Circle San Francisco\"\n              class=\"w-25 mr-3\">\n           <div class=\"media-body\">\n             <h5 class=\"text-primary\">" + show.name + "</h5>\n             <div><small>" + show.summary + "</small></div>\n             <button class=\"btn btn-outline-light btn-sm Show-getEpisodes\">\n               Episodes\n             </button>\n           </div>\n         </div>\n       </div>\n      ");
+        var $show = $("<div data-show-id=\"" + show.id + "\" class=\"Show col-md-12 col-lg-6 mb-4\">\n         <div class=\"media\">\n           <img\n              src=\"" + show.image.medium + "\"\n              alt=\"Bletchly Circle San Francisco\"\n              class=\"w-25 mr-3\">\n           <div class=\"media-body\">\n             <h5 class=\"text-primary\">" + show.name + "</h5>\n             <div><small>" + show.summary + "</small></div>\n             <button class=\"btn btn-outline-light btn-sm Show-getEpisodes\">\n               Episodes\n             </button>\n           </div>\n         </div>\n       </div>\n      ");
         $showsList.append($show);
     }
 }
