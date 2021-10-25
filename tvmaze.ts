@@ -2,6 +2,7 @@ import axios from "axios"
 import * as $ from 'jquery';
 
 const $showsList = $("#showsList");
+const $episodesList = $("#episodesList");
 const $episodesArea = $("#episodesArea");
 const $searchForm = $("#searchForm");
 const BASE_URL: string = "http://api.tvmaze.com/";
@@ -50,7 +51,7 @@ function _handleShowData(eachShow: eachShowInterface): TvInterface {
 
 /** Given list of shows, create markup for each and to DOM */
 
-function populateShows(shows) {
+function populateShows(shows: TvInterface[]): void {
   $showsList.empty();
 
   for (let show of shows) {
@@ -58,7 +59,7 @@ function populateShows(shows) {
       `<div data-show-id="${show.id}" class="Show col-md-12 col-lg-6 mb-4">
          <div class="media">
            <img
-              src="http://static.tvmaze.com/uploads/images/medium_portrait/160/401704.jpg"
+              src="${show.image}"
               alt="Bletchly Circle San Francisco"
               class="w-25 mr-3">
            <div class="media-body">
@@ -81,15 +82,15 @@ function populateShows(shows) {
  *    Hide episodes area (that only gets shown if they ask for episodes)
  */
 
-async function searchForShowAndDisplay() {
-  const term = $("#searchForm-term").val();
+async function searchForShowAndDisplay(): Promise<void> {
+  const term = $("#searchForm-term").val() as string;
   const shows = await getShowsByTerm(term);
 
   $episodesArea.hide();
   populateShows(shows);
 }
 
-$searchForm.on("submit", async function (evt) {
+$searchForm.on("submit", async function (evt): Promise<void> {
   evt.preventDefault();
   await searchForShowAndDisplay();
 });
@@ -99,8 +100,61 @@ $searchForm.on("submit", async function (evt) {
  *      { id, name, season, number }
  */
 
-// async function getEpisodesOfShow(id) { }
+interface EpisodeInterface {
+  id: number;
+  name: string;
+  season: string;
+  number: number;
+}
 
-/** Write a clear docstring for this function... */
+async function getEpisodesOfShow(id: number): Promise<EpisodeInterface[]> {
+  const response = await axios({
+    url: `${BASE_URL}shows/${id}/episodes`,
+    method: "GET",
+  });
 
-// function populateEpisodes(episodes) { }
+  return response.data.map((e: EpisodeInterface) => ({
+    id: e.id,
+    name: e.name,
+    season: e.season,
+    number: e.number,
+  }));
+}
+
+/** Given list of episodes, create markup for each and to DOM */
+
+function populateEpisodes(episodes: EpisodeInterface[]): void {
+  $episodesList.empty();
+
+  for (let episode of episodes) {
+    const $item = $(
+      `<li>
+         ${episode.name}
+         (season ${episode.season}, episode ${episode.number})
+       </li>
+      `);
+
+    $episodesList.append($item);
+  }
+
+  $episodesArea.show();
+}
+
+/** Handle click on episodes button: get episodes for show and display */
+
+async function getEpisodesAndDisplay(evt: { target: HTMLElement }): Promise<void> {
+  // here's one way to get the ID of the show: search "closest" ancestor
+  // with the class of .Show (which is put onto the enclosing div, which
+  // has the .data-show-id attribute).
+  const showId = $(evt.target).closest(".Show").data("show-id");
+
+  // here's another way to get the ID of the show: search "closest" ancestor
+  // that has an attribute of 'data-show-id'. This is called an "attribute
+  // selector", and it's part of CSS selectors worth learning.
+  // const showId = $(evt.target).closest("[data-show-id]").data("show-id");
+
+  const episodes = await getEpisodesOfShow(showId);
+  populateEpisodes(episodes);
+}
+
+$showsList.on("click", ".Show-getEpisodes", getEpisodesAndDisplay);
