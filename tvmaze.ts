@@ -7,6 +7,30 @@ const $episodesArea = $("#episodesArea");
 const $searchForm = $("#searchForm");
 const BASE_URL: string = "http://api.tvmaze.com/";
 
+interface ShowInterface {
+  id: number;
+  name: string;
+  summary: string;
+  image: string;
+}
+
+interface ShowDataInterface {
+  show: {
+    id: number;
+    name: string;
+    summary: string;
+    image?: { medium: string }
+  };
+}
+
+interface EpisodeInterface {
+  id: number;
+  name: string;
+  season: string;
+  number: number;
+}
+
+
 /** Given a search term, search for tv shows that match that query.
  *
  *  Returns (promise) array of show objects: [show, show, ...].
@@ -14,31 +38,16 @@ const BASE_URL: string = "http://api.tvmaze.com/";
  *    (if no image URL given by API, put in a default image URL)
  */
 
-interface TvInterface {
-  id: number;
-  name: string;
-  summary: string;
-  image: string;
-}
-async function getShowsByTerm(term: string): Promise<TvInterface[]> {
-  // ADD: Remove placeholder & make request to TVMaze search shows API.
+async function getShowsByTerm(term: string): Promise<ShowInterface[]> {
   const response = await axios.get(`${BASE_URL}search/shows?q=${term}`);
   const shows = response.data.map(_handleShowData);
   return shows;
 
 }
 
-interface eachShowInterface {
-  show: {
-    id: number;
-    name: "string";
-    summary: "string";
-    image?: { medium: string }
-  };
-}
 
 /** Parse received data from each show and return {id, name, summary, image} */
-function _handleShowData(eachShow: eachShowInterface): TvInterface {
+function _handleShowData(eachShow: ShowDataInterface): ShowInterface {
   return {
     id: eachShow.show.id,
     name: eachShow.show.name,
@@ -51,7 +60,7 @@ function _handleShowData(eachShow: eachShowInterface): TvInterface {
 
 /** Given list of shows, create markup for each and to DOM */
 
-function populateShows(shows: TvInterface[]): void {
+function populateShows(shows: ShowInterface[]): void {
   $showsList.empty();
 
   for (let show of shows) {
@@ -96,16 +105,9 @@ $searchForm.on("submit", async function (evt): Promise<void> {
 });
 
 
-/** Given a show ID, get from API and return (promise) array of episodes:
- *      { id, name, season, number }
+/** Given a show ID, get from API,
+ *  returns (promise) array of episodes: [{ id, name, season, number },...]
  */
-
-interface EpisodeInterface {
-  id: number;
-  name: string;
-  season: string;
-  number: number;
-}
 
 async function getEpisodesOfShow(id: number): Promise<EpisodeInterface[]> {
   const response = await axios({
@@ -143,16 +145,8 @@ function populateEpisodes(episodes: EpisodeInterface[]): void {
 /** Handle click on episodes button: get episodes for show and display */
 
 async function getEpisodesAndDisplay(evt: { target: HTMLElement }): Promise<void> {
-  // here's one way to get the ID of the show: search "closest" ancestor
-  // with the class of .Show (which is put onto the enclosing div, which
-  // has the .data-show-id attribute).
+
   const showId = $(evt.target).closest(".Show").data("show-id");
-
-  // here's another way to get the ID of the show: search "closest" ancestor
-  // that has an attribute of 'data-show-id'. This is called an "attribute
-  // selector", and it's part of CSS selectors worth learning.
-  // const showId = $(evt.target).closest("[data-show-id]").data("show-id");
-
   const episodes = await getEpisodesOfShow(showId);
   populateEpisodes(episodes);
 }

@@ -13090,6 +13090,12 @@ var $episodesList = $("#episodesList");
 var $episodesArea = $("#episodesArea");
 var $searchForm = $("#searchForm");
 var BASE_URL = "http://api.tvmaze.com/";
+/** Given a search term, search for tv shows that match that query.
+ *
+ *  Returns (promise) array of show objects: [show, show, ...].
+ *    Each show object should contain exactly: {id, name, summary, image}
+ *    (if no image URL given by API, put in a default image URL)
+ */
 function getShowsByTerm(term) {
     return __awaiter(this, void 0, void 0, function () {
         var response, shows;
@@ -13158,6 +13164,9 @@ $searchForm.on("submit", function (evt) {
         });
     });
 });
+/** Given a show ID, get from API,
+ *  returns (promise) array of episodes: [{ id, name, season, number },...]
+ */
 function getEpisodesOfShow(id) {
     return __awaiter(this, void 0, void 0, function () {
         var response;
